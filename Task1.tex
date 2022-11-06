@@ -1,0 +1,151 @@
+\documentclass[12pt]{article}
+\usepackage[export]{adjustbox}
+\usepackage{geometry}
+\usepackage[fleqn]{amsmath}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsthm}             	\usepackage{graphicx,booktabs,array}
+\geometry{letterpaper}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\graphicspath{ {./images/} }
+\title{Отчет по практикуму на ЭВМ "Аппроксимация дифференциальной задачи с
+помощью метода кусочно-квадратичных конечных элементов"
+}
+\author{Артем Зданович, 411 группа}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Постановка  Задачи}
+Аппроксимировать следующую задачу с помощью метода конечных элементов (кусочно квадратичных) и найти решение полученной системы алгебраических уравнений многосеточным
+методом при различных h и f
+$$-(ku')'+u'+u=f(x),$$ $$u(0)+u'(0)=u(1)=0, k=
+\begin{cases}
+5/2 & x \leq{0.5} \\
+3 & x >0.5
+\end{cases} $$
+Исследовать построенную разностную схему на устойчивость и сходимость.
+\section{Метод решения}
+Найдем решение в виде $u(x)=\sum_{i=0}^{N}{c_i\phi_i^h(x)}+\sum_{i=0}^{N-1}{c_i\psi_i^h(x)}$, где $c_i$ -- некоторые коэффициенты, а $\{\phi_i^h(x),\psi_i^h(x)\}$ -- набор базисных функций. Всего их $2N+1$. Явный вид этих функций:
+
+$\begin{cases}\phi_i^h(x)=\frac{(h(i-1)-x)(-h(i+1)+x)}{h^2},i=0,\dots,N \\ \psi_i^h(x)=-4N^2(x-\frac{i}{N})^2+1,i=0,\dots,N-1
+\end{cases}$
+
+Пусть наша сетка имеет вид $D_h=
+\{x_j=jh,j=0,
+\dots,N;Nh=1\}$. Считаем, что точка разрыва функции $k$---$0.5$ принадлежит множеству узлов сетки (т.е. $N$--четно).
+
+Используем метод Галеркина:
+
+$\sum_{j=0}^{N}{c_j^{\phi}(L\phi_j^h(x),\phi_i^h(x)})+\sum_{j=0}^{N-1}{c_j^{\psi}(L\psi_j^h(x),\phi_i^h(x))}=(f,\phi_i^h(x))$ (и аналогичное равенство, где в правой части скалярных произведений стоит $\psi_i^h(x)$).
+
+Кроме того, имеем граничное условие, которое будем использовать позже:
+
+$u(0)+u'(0)=u(1)=0$.
+
+Задача свелась к нахождению $c_i$ из решения СЛУ $Ac=b$. Найдем элементы $A$ (используя пакет Wolfram Mathematica) для каждого вида базисных функций:
+
+$(L\phi_j^h(x),\phi_i^h(x))=\int_{x_i-1}^{x+i+1}(k(\phi_j^h(x))'(\phi_i^h(x))'+(\phi_j^h(x))'\phi_i^h(x)+\phi_j^h(x)\phi_j^h(x)=\frac{16h}{15}+\frac{8k}{3h},i=j$
+
+
+$(L\psi_j^h(x),\psi_i^h(x))=\int_{x_{i}}^{x_{i+1}}(-k(\psi_j^h(x))'(\psi_i^h(x))'+(\psi_j^h(x))'\psi_i^h(x)+\psi_j^h(x)\psi_i^h(x))=\frac{8h}{5}+\frac{16k}{3h},i=j$
+
+
+$(L\phi_j^h(x),\psi_i^h(x))=\int_{x_{i-1}}^{x_{i+1}}(-k(\phi_j^h(x))'(\psi_i^h(x))'+(\phi_j^h(x))'\psi_i^h(x)+\phi_j^h(x)\psi_i^h(x))=\frac{2}{3}+\frac{7h}{5}+\frac{4k}{3h},i=2l,j=2l+1$
+
+$(L\psi_j^h(x),\phi_i^h(x))=\int_{x_i-1}^{x+i+1}(-k(\psi_j^h(x))'(\phi_i^h(x))'+(\psi_j^h(x))'\phi_i^h(x)+\psi_j^h(x)\phi_j^h(x)=\frac{-2}{3}+\frac{7h}{5}+\frac{16k}{3h},i=2l,j=2l+2$
+
+$(L\phi_j^h(x),\phi_i^h(x))=\int_{x_i-1}^{x+i+1}(k(\phi_j^h(x))'(\phi_i^h(x))'+(\phi_j^h(x))'\phi_i^h(x)+\phi_j^h(x)\phi_j^h(x)=\frac{11h}{30}-\frac{2k}{3h},i=j$
+
+Матрица $A$ имеет вид
+$$A=\begin{pmatrix} 1 & \frac{4}{h} & \frac{2}{h} & 0 & 0 & \cdots \\
+(L\psi_0^h(x),\phi_0^h(x)) & (L\psi_0^h(x),\psi_0^h(x)) & (L\psi_0^h(x),\phi_1^h(x)) & 0 & 0 & \cdots \\
+(L\phi_1^h(x),\phi_0^h(x)) & (L\phi_1^h(x),\psi_0^h(x)) &
+(L\phi_1^h(x),\phi_1^h(x)) &
+(L\phi_1^h(x),\psi_1^h(x)) &
+(L\phi_1^h(x),\phi_2^h(x)) &
+\cdots \\
+0 & 0 & (L\psi_1^h(x),\phi_1^h(x)) & (L\psi_1^h(x),\psi_1^h(x)) & (L\psi_1^h(x),\phi_2^h(x)) & \cdots
+\\
+\vdots &
+\vdots &
+\vdots &
+\vdots &
+\ddots &
+\ddots \end{pmatrix}
+$$
+
+где первая строка состоит из краевых условий.
+
+Теперь найдем вектор $b$:
+
+$b_i^{\phi}=(f,\phi_i^h(x))=\int_0^1f\phi_i^h(x)dx=\frac{4}{3}hf(hi)$
+
+$b_i^{\psi}=(f,\psi_i^h(x))=\int_0^1f\psi_i^h(x)dx=\frac{2}{3}hf(hi)
+$
+
+Следовательно:
+$b=(b_0^{\phi},b_0^{\psi},b_1^{\phi},b_1^{\psi},\dots)$
+Используем краевые условия:
+
+$u(0)+u'(0)=0\Rightarrow c_1+\frac{4}{h}c_2+\frac{2}{h}c_3=0$
+
+$u(1)=0 \Rightarrow c_^{\phi}_{N}}\phi_{N}^h=0\Rightarrow c_^{\phi}_{N}}=0$.
+
+Остальные коэффициенты вычислим, используя программу на языке C\texttt{++}
+
+
+\section{Аппроксимация}
+Посмотрим на работу алгоритма на примере. Возьмем в качестве правой части $$f(x)=\pi sin(2\pi{x})-\frac{1}{2}(1+4k\pi^2)cos(2\pi{x})+\frac{1}{2})$$
+Тогда аналитическим решением задачи будет $sin^2(\pi{x})$.
+Аппроксимируем решение с данной функцией $f$ и построим графики обеих функций. Так как наша схемах на многочленах второй степени точна, то она аппроксимирует решение с точностью $O(h^3)$. Имеет место устойчивость и сходимость.
+\begin{figure}[h]
+\includegraphics[width=12cm]{Analytic_function}
+\end{figure}
+\section{Результаты}
+\clearpage
+\begin{table}\sffamily
+\begin{tabular}{l*4{C}@{}}
+\toprule
+\includegraphics[width=12em]{images/Analytic_1.png} &
+\includegraphics[width=12em]{images/Analytic_2.png} \\
+\includegraphics[width=12em]{images/Analytic_3.png} &
+\includegraphics[width=12em]{images/Analytic_4.png} \\
+\includegraphics[width=12em]{images/Analytic_5.png} &
+\includegraphics[width=12em]{images/Analytic_6.png} \\
+\includegraphics[width=12em]{images/Analytic_7.png} &
+\includegraphics[width=12em]{images/Analytic_8.png} \\
+
+\end{tabular}
+\end{table}
+
+\clearpage
+Погрешность - Евклидова норма $u_{analit}$ и $u_{approx}$ умноженная на $h$ при различных $N =
+5, 10, 20, 50, 100, 200, 500, 1000$
+Зависимость погрешности, от масштаба разбиения представлена ниже:
+\begin{figure}[h]
+    \centering
+    \includegraphics{images/Residual.png}
+\end{figure}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c}
+         N & Погрешность  \\
+        5 &0.42723 \\
+10 &0.05336\\
+20 &0.01049\\
+50 &0.00234\\
+100 &0.00108\\
+200 &0.00068\\
+500 &0.00043\\
+1000 &0.00031\\
+    \end{tabular}
+
+\end{table}
+\end{document}
