@@ -24,7 +24,7 @@ def Int4(n,k): #L(psi_j,phi_i)
 
 def Int5(n,k): #???
     h=float(1)/(n-1)
-    return -2*k*n/3+11/30/n
+    return -2*k*n/3+11/30/n + 5/6 #the last add is mine
 
 def b2(i:int,n:int,f)->float:
     h=float(1)/(n-1)
